@@ -1,0 +1,24 @@
+FROM postgres:16.6
+
+RUN apt-get update && apt-get install -y locales \
+    && echo "zh_TW.UTF-8 UTF-8" >> /etc/locale.gen \
+    && locale-gen
+
+ENV LANG=zh_TW.UTF-8
+
+RUN apt-get update && apt-get install -y --no-install-recommends apache2 libapache2-mod-php php-pgsql php-cli php-json php-curl php-gd php-mbstring php-xml php-zip net-tools vim \
+    && rm -rf /var/lib/apt/lists/*
+
+EXPOSE 80
+
+COPY init.sql /docker-entrypoint-initdb.d/
+COPY chall.php /var/www/html/
+COPY flag /tmp/flag
+
+COPY custom-entrypoint.sh /usr/local/bin/
+
+RUN chmod +x /usr/local/bin/custom-entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/custom-entrypoint.sh"]
+
+CMD ["postgres"]
